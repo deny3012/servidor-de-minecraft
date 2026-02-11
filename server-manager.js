@@ -11,6 +11,7 @@ const { Server } = require("socket.io");
 const multer = require('multer');
 let pam;
 try {
+    if (process.env.CODESPACES === 'true') throw new Error('Codespaces detectado: Usando autenticación por archivo');
     pam = require('node-linux-pam');
 } catch (e) {
     console.log('AVISO: Módulo PAM no cargado. Usando modo desarrollo (admin/admin).');
@@ -50,7 +51,7 @@ const keyPath = path.join(__dirname, 'server.key');
 const certPath = path.join(__dirname, 'server.cert');
 
 // Verificar si se solicitó modo HTTP explícito (útil para túneles como Playit/Ngrok)
-const useHttp = process.argv.includes('--http');
+const useHttp = process.argv.includes('--http') || process.env.CODESPACES === 'true';
 
 // Intentar generar certificados si no existen (requiere openssl, común en Linux)
 if (!useHttp && (!fs.existsSync(keyPath) || !fs.existsSync(certPath))) {
@@ -223,6 +224,21 @@ app.post('/create-server', async (req, res) => {
     }
 
     try {
+        // Verificar si la imagen existe, si no, descargarla (Evita error 404)
+        const images = await docker.listImages();
+        const imageExists = images.some(img => img.RepoTags && img.RepoTags.some(t => t.startsWith(MINECRAFT_IMAGE)));
+        
+        if (!imageExists) {
+            logActivity(`⚠️ Imagen Docker no encontrada. Descargando ${MINECRAFT_IMAGE}... (Esto puede tardar)`);
+            await new Promise((resolve, reject) => {
+                docker.pull(MINECRAFT_IMAGE, (err, stream) => {
+                    if (err) return reject(err);
+                    docker.modem.followProgress(stream, (err, res) => err ? reject(err) : resolve(res));
+                });
+            });
+            logActivity(`✅ Imagen descargada.`);
+        }
+
         const container = await docker.createContainer({
             Image: MINECRAFT_IMAGE,
             name: `mc-${serverName}`,
@@ -250,7 +266,7 @@ app.post('/create-server', async (req, res) => {
             await container.start();
         } catch (e) {
             // Ignorar error si ya se inició (evita falsos positivos)
-            if (e.statusCode !== 304 && !e.message.includes('already started')) throw e;
+            if (e.statusCode != 304 && !e.message.includes('already started') && !e.message.includes('304')) throw e;
         }
         logActivity(`Servidor creado e iniciado: ${serverName} (ID: ${container.id.substring(0, 12)})`);
         res.json({ message: 'Servidor creado e iniciando descarga...', id: container.id });
@@ -271,7 +287,7 @@ app.post('/start-server/:id', async (req, res) => {
         res.json({ message: 'Servidor iniciado' });
     } catch (error) {
         // Si ya está encendido, no lo tratamos como error
-        if (error.statusCode === 304 || (error.message && error.message.includes('already started'))) {
+        if (error.statusCode == 304 || (error.message && (error.message.includes('already started') || error.message.includes('304')))) {
             return res.json({ message: 'El servidor ya está en línea.' });
         }
         logActivity(`Error iniciando servidor: ${error.message}`);
