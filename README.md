@@ -63,6 +63,23 @@ Gestor de servidores de Minecraft ligero, potente y auto-hospedado. Diseñado pa
 *   `server-manager.js`: Servidor principal.
 *   `index.html`: Interfaz de usuario.
 
+## 🧩 Desarrollo de Plugins Web
+
+El panel permite cargar scripts personalizados en el navegador (Frontend) automáticamente.
+
+**Pasos para crear un plugin web:**
+1.  Navega a la carpeta `web-plugins/`.
+2.  Crea una nueva carpeta con el nombre de tu plugin (ej: `mejoras-visuales`).
+3.  Dentro de esa carpeta, crea un archivo `.js` (ej: `main.js`).
+4.  El panel inyectará este script automáticamente en el navegador.
+
+**Estructura de archivos:**
+```text
+web-plugins/
+└── nombre-del-plugin/
+    └── script.js
+```
+
 ## ❓ Solución de Problemas
 
 *   **Error de Docker:** Verifica que Docker Desktop esté abierto.

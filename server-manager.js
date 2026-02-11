@@ -204,6 +204,7 @@ app.post('/create-server', async (req, res) => {
     ];
     // Si es Fabric y tenemos versión del loader, la agregamos
     if (serverType === 'FABRIC' && loaderVersion) envVars.push(`FABRIC_LOADER_VERSION=${loaderVersion}`);
+    if (serverType === 'QUILT' && loaderVersion) envVars.push(`QUILT_LOADER_VERSION=${loaderVersion}`);
 
     // Preparar configuración de puertos (Evitar conflictos UDP)
     const portBindings = {
@@ -221,6 +222,17 @@ app.post('/create-server', async (req, res) => {
         // Si el usuario eligió el MISMO puerto para ambos, priorizamos Bedrock en UDP
         // (Docker fallaría si intentamos mapear el mismo puerto UDP a dos servicios distintos)
         portBindings['19132/udp'] = [{ HostPort: bPort }];
+    }
+
+    // Calcular límite de memoria soportando decimales (ej: 1.5G)
+    let memLimitBytes = 1024 * 1024 * 1024; // Default 1G
+    const ramStr = String(ramLimit).toUpperCase();
+    if (ramStr.endsWith('M')) {
+        memLimitBytes = parseInt(ramStr) * 1024 * 1024;
+    } else if (ramStr.endsWith('G')) {
+        memLimitBytes = parseFloat(ramStr) * 1024 * 1024 * 1024;
+    } else {
+        memLimitBytes = parseFloat(ramStr || 1) * 1024 * 1024 * 1024;
     }
 
     try {
@@ -251,7 +263,7 @@ app.post('/create-server', async (req, res) => {
             HostConfig: {
                 PortBindings: portBindings,
                 Binds: [`${serverPath}:/data`],
-                Memory: 1024 * 1024 * 1024 * (parseInt(ramLimit) || 1),
+                Memory: Math.floor(memLimitBytes),
                 RestartPolicy: { Name: 'unless-stopped' } // Reiniciar automáticamente si la laptop se reinicia
             },
             AttachStdin: true,
