@@ -7,6 +7,9 @@
     "start": "node server-manager.js",
     "start-http": "node server-manager.js --http"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "dockerode": "^3.3.5",
     "express": "^4.18.2",
@@ -15,6 +18,9 @@
     "minecraft-server-util": "^5.3.0",
     "archiver": "^5.3.1",
     "prismarine-nbt": "^2.6.0"
+  },
+  "optionalDependencies": {
+    "node-linux-pam": "^1.0.1"
   },
   "author": ""
 }

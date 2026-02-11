@@ -181,7 +181,7 @@ const upload = multer({ storage: storage });
  * Crea un nuevo servidor
  */
 app.post('/create-server', async (req, res) => {
-    const { serverName, ramLimit, port, bedrockPort, serverType, serverVersion, loaderVersion } = req.body;
+    const { serverName, ramLimit, port, bedrockPort, serverType, serverVersion, loaderVersion, curseforgeSlug, curseforgeFileId } = req.body;
     
     logActivity(`Creando servidor: ${serverName} (${serverType} ${serverVersion})`);
 
@@ -197,14 +197,30 @@ app.post('/create-server', async (req, res) => {
     // Configurar variables de entorno
     const envVars = [
         'EULA=TRUE',
-        `VERSION=${serverVersion || 'LATEST'}`,
-        `TYPE=${serverType || 'PAPER'}`,
         `MEMORY=${ramLimit || '1G'}`,
         `SERVER_PORT=${port}`
     ];
-    // Si es Fabric y tenemos versión del loader, la agregamos
-    if (serverType === 'FABRIC' && loaderVersion) envVars.push(`FABRIC_LOADER_VERSION=${loaderVersion}`);
-    if (serverType === 'QUILT' && loaderVersion) envVars.push(`QUILT_LOADER_VERSION=${loaderVersion}`);
+
+    // --- Lógica Personalizada para Tipos de Servidor ---
+    if (serverType === 'CURSEFORGE') {
+        if (!curseforgeSlug) return res.status(400).json({ error: 'Se requiere el Slug o Project ID de CurseForge.' });
+        logActivity(`Tipo CurseForge detectado. Usando Slug: ${curseforgeSlug}`);
+        envVars.push('TYPE=CURSEFORGE');
+        // The itzg image can use either slug or project ID for this variable
+        envVars.push(`CF_MODPACK_SLUG=${curseforgeSlug}`);
+        
+        // If a specific file ID is provided, use it. Otherwise, the image gets the latest.
+        if (curseforgeFileId) {
+            logActivity(`... y File ID específico: ${curseforgeFileId}`);
+            envVars.push(`CF_FILE_ID=${curseforgeFileId}`);
+        }
+    } else {
+        // Lógica original para otros tipos de servidor
+        envVars.push(`VERSION=${serverVersion || 'LATEST'}`);
+        envVars.push(`TYPE=${serverType || 'PAPER'}`);
+        if (serverType === 'FABRIC' && loaderVersion) envVars.push(`FABRIC_LOADER_VERSION=${loaderVersion}`);
+        if (serverType === 'QUILT' && loaderVersion) envVars.push(`QUILT_LOADER_VERSION=${loaderVersion}`);
+    }
 
     // Preparar configuración de puertos (Evitar conflictos UDP)
     const portBindings = {
@@ -595,6 +611,18 @@ app.get('/my-ip', (req, res) => {
     res.json({ ip: clientIp });
 });
 
+// --- NUEVO: Detección de información del sistema (RAM) ---
+app.get('/system-info', (req, res) => {
+    try {
+        res.json({
+            total: os.totalmem() // Total system memory in bytes
+        });
+    } catch (e) {
+        logActivity(`Error obteniendo información del sistema: ${e.message}`);
+        res.status(500).json({ error: 'No se pudo obtener la memoria del sistema.' });
+    }
+});
+
 // --- NUEVO: Detección automática de puertos libres ---
 app.get('/next-ports', async (req, res) => {
     try {
@@ -632,6 +660,78 @@ app.get('/next-ports', async (req, res) => {
         res.json({ tcp, udp });
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+// --- NUEVO: API para Catálogo de Plugins/Mods ---
+
+// Obtener detalles básicos de un servidor, como su tipo.
+app.get('/server-details/:id', async (req, res) => {
+    try {
+        const container = docker.getContainer(req.params.id);
+        const info = await container.inspect();
+        const env = info.Config.Env || [];
+        const typeVar = env.find(e => e.startsWith('TYPE='));
+        const serverType = typeVar ? typeVar.split('=')[1] : 'UNKNOWN';
+        res.json({ type: serverType });
+    } catch (e) {
+        res.status(404).json({ error: 'No se pudo encontrar el servidor.' });
+    }
+});
+
+app.get('/catalog/search', async (req, res) => {
+    const { type, query } = req.query;
+    if (!type || !query) return res.status(400).json({ error: 'Faltan parámetros de búsqueda.' });
+
+    logActivity(`[Catálogo] Buscando '${query}' en '${type}'`);
+
+    try {
+        if (type === 'plugins') {
+            // Usar Spiget API para plugins de Spigot/Paper/etc.
+            const spigetUrl = `https://api.spiget.org/v2/search/resources/${encodeURIComponent(query)}?field=name,tag,icon,downloads,rating,id`;
+            const response = await fetch(spigetUrl);
+            if (!response.ok) throw new Error(`Spiget API respondió con ${response.status}`);
+            const data = await response.json();
+            res.json(data);
+        } else {
+            res.status(400).json({ error: 'Tipo de catálogo no soportado por ahora.' });
+        }
+    } catch (error) {
+        logActivity(`[Catálogo] Error en búsqueda: ${error.message}`);
+        res.status(500).json({ error: 'Error al contactar la API externa.' });
+    }
+});
+
+app.post('/catalog/install', async (req, res) => {
+    const { serverName, downloadUrl, destination, fileNameHint } = req.body;
+    if (!serverName || !downloadUrl || !destination) return res.status(400).json({ error: 'Faltan parámetros.' });
+    if (destination !== 'plugins' && destination !== 'mods') return res.status(400).json({ error: 'Destino no válido.' });
+
+    const serverPath = path.join(__dirname, 'servers', serverName);
+    const destPath = path.join(serverPath, destination);
+    if (!fs.existsSync(destPath)) fs.mkdirSync(destPath, { recursive: true });
+
+    try {
+        logActivity(`[Catálogo] Descargando para ${serverName}: ${downloadUrl}`);
+        const response = await fetch(downloadUrl);
+        if (!response.ok) throw new Error(`No se pudo descargar: ${response.statusText}`);
+
+        // Usar el nombre del recurso como pista y añadir .jar
+        const fileName = `${fileNameHint.replace(/[^a-zA-Z0-9.-]/g, '_')}.jar`;
+        const filePath = path.join(destPath, fileName);
+        const fileStream = fs.createWriteStream(filePath);
+        
+        await new Promise((resolve, reject) => {
+            response.body.pipe(fileStream);
+            response.body.on("error", reject);
+            fileStream.on("finish", resolve);
+        });
+
+        logActivity(`[Catálogo] Instalado ${fileName} en ${serverName}/${destination}`);
+        res.json({ message: `${fileName} instalado. Reinicia el servidor para activarlo.` });
+    } catch (error) {
+        logActivity(`[Catálogo] Error instalando: ${error.message}`);
+        res.status(500).json({ error: `Error durante la instalación: ${error.message}` });
     }
 });
 

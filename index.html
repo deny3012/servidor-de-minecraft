@@ -268,6 +268,20 @@
         .type-option h4 { margin: 0 0 5px 0; font-size: 1rem; }
         .type-option small { font-size: 0.75rem; color: var(--text-muted); }
         
+        .category-grid { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
+        .category-option {
+            flex: 1;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .category-option:hover { background: var(--card-hover); color: var(--text-color); }
+        .category-option.selected { background: var(--primary-color); color: white; border-color: var(--primary-hover); }
+
         /* Manage View Dashboard */
         .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-box { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center; }
@@ -334,28 +348,43 @@
                 </div>
             </div>
 
-            <label style="display:block; margin-bottom:10px; color:var(--text-muted);">Tipo de Software</label>
+            <label style="display:block; margin-bottom:10px; color:var(--text-muted);">Categoría</label>
+            <div class="category-grid">
+                <button class="category-option selected" onclick="showTypesForCategory(this, 'plugins')">Plugins</button>
+                <button class="category-option" onclick="showTypesForCategory(this, 'mods')">Mods</button>
+                <button class="category-option" onclick="showTypesForCategory(this, 'vanilla')">Vanilla</button>
+                <button class="category-option" onclick="showTypesForCategory(this, 'hibridos')">Híbridos</button>
+                <button class="category-option" onclick="showTypesForCategory(this, 'proxies')">Proxies</button>
+            </div>
+
             <input type="hidden" id="serverType" value="PAPER">
+            <label style="display:block; margin-bottom:10px; color:var(--text-muted);">Tipo de Software</label>
             <div class="type-grid">
-                <div class="type-option selected" onclick="selectType(this, 'PAPER')"><h4>Paper</h4><small>Plugins (Rápido)</small></div>
-                <div class="type-option" onclick="selectType(this, 'PURPUR')"><h4>Purpur</h4><small>Plugins (Optimizado)</small></div>
-                <div class="type-option" onclick="selectType(this, 'SPIGOT')"><h4>Spigot</h4><small>Plugins (Clásico)</small></div>
-                <div class="type-option" onclick="selectType(this, 'BUKKIT')"><h4>Bukkit</h4><small>Plugins (Legacy)</small></div>
-                <div class="type-option" onclick="selectType(this, 'VANILLA')"><h4>Vanilla</h4><small>Original</small></div>
-                <div class="type-option" onclick="selectType(this, 'SNAPSHOT')"><h4>Snapshot</h4><small>Experimental</small></div>
-                <div class="type-option" onclick="selectType(this, 'BEDROCK')"><h4>Bedrock</h4><small>Oficial (C++)</small></div>
-                <div class="type-option" onclick="selectType(this, 'QUILT')"><h4>Quilt</h4><small>Mods (Fork Fabric)</small></div>
-                <div class="type-option" onclick="selectType(this, 'FABRIC')"><h4>Fabric</h4><small>Mods Ligeros</small></div>
-                <div class="type-option" onclick="selectType(this, 'FORGE')"><h4>Forge</h4><small>Mods Pesados</small></div>
-                <div class="type-option" onclick="selectType(this, 'NEOFORGE')"><h4>NeoForge</h4><small>Mods Modernos</small></div>
-                <div class="type-option" onclick="selectType(this, 'MOHIST')"><h4>Mohist</h4><small>Híbrido</small></div>
-                <div class="type-option" onclick="selectType(this, 'MAGMA')"><h4>Magma</h4><small>Híbrido</small></div>
-                <div class="type-option" onclick="selectType(this, 'CATSERVER')"><h4>CatServer</h4><small>Híbrido (1.12.2)</small></div>
-                <div class="type-option" onclick="selectType(this, 'ARCLIGHT')"><h4>Arclight</h4><small>Híbrido</small></div>
-                <div class="type-option" onclick="selectType(this, 'SPONGEVANILLA')"><h4>Sponge</h4><small>Sponge API</small></div>
-                <div class="type-option" onclick="selectType(this, 'VELOCITY')"><h4>Velocity</h4><small>Proxy Moderno</small></div>
-                <div class="type-option" onclick="selectType(this, 'BUNGEECORD')"><h4>BungeeCord</h4><small>Proxy Clásico</small></div>
-                <div class="type-option" onclick="selectType(this, 'WATERFALL')"><h4>Waterfall</h4><small>Proxy Fork</small></div>
+                <!-- Plugins -->
+                <div class="type-option" data-category="plugins" onclick="selectType(this, 'PAPER')"><h4>Paper</h4><small>Plugins (Rápido)</small></div>
+                <div class="type-option" data-category="plugins" onclick="selectType(this, 'PURPUR')"><h4>Purpur</h4><small>Plugins (Optimizado)</small></div>
+                <div class="type-option" data-category="plugins" onclick="selectType(this, 'SPIGOT')"><h4>Spigot</h4><small>Plugins (Clásico)</small></div>
+                <div class="type-option" data-category="plugins" onclick="selectType(this, 'BUKKIT')"><h4>Bukkit</h4><small>Plugins (Legacy)</small></div>
+                <!-- Mods -->
+                <div class="type-option" data-category="mods" onclick="selectType(this, 'FABRIC')"><h4>Fabric</h4><small>Mods Ligeros</small></div>
+                <div class="type-option" data-category="mods" onclick="selectType(this, 'FORGE')"><h4>Forge</h4><small>Mods Pesados</small></div>
+                <div class="type-option" data-category="mods" onclick="selectType(this, 'NEOFORGE')"><h4>NeoForge</h4><small>Mods Modernos</small></div>
+                <div class="type-option" data-category="mods" onclick="selectType(this, 'QUILT')"><h4>Quilt</h4><small>Mods (Fork Fabric)</small></div>
+                <div class="type-option" data-category="mods" onclick="selectType(this, 'CURSEFORGE')"><h4>CurseForge</h4><small>Modpack</small></div>
+                <!-- Vanilla -->
+                <div class="type-option" data-category="vanilla" onclick="selectType(this, 'VANILLA')"><h4>Vanilla</h4><small>Original</small></div>
+                <div class="type-option" data-category="vanilla" onclick="selectType(this, 'SNAPSHOT')"><h4>Snapshot</h4><small>Experimental</small></div>
+                <div class="type-option" data-category="vanilla" onclick="selectType(this, 'BEDROCK')"><h4>Bedrock</h4><small>Oficial (C++)</small></div>
+                <!-- Híbridos -->
+                <div class="type-option" data-category="hibridos" onclick="selectType(this, 'MOHIST')"><h4>Mohist</h4><small>Híbrido</small></div>
+                <div class="type-option" data-category="hibridos" onclick="selectType(this, 'MAGMA')"><h4>Magma</h4><small>Híbrido</small></div>
+                <div class="type-option" data-category="hibridos" onclick="selectType(this, 'CATSERVER')"><h4>CatServer</h4><small>Híbrido (1.12.2)</small></div>
+                <div class="type-option" data-category="hibridos" onclick="selectType(this, 'ARCLIGHT')"><h4>Arclight</h4><small>Híbrido</small></div>
+                <div class="type-option" data-category="hibridos" onclick="selectType(this, 'SPONGEVANILLA')"><h4>Sponge</h4><small>Sponge API</small></div>
+                <!-- Proxies -->
+                <div class="type-option" data-category="proxies" onclick="selectType(this, 'VELOCITY')"><h4>Velocity</h4><small>Proxy Moderno</small></div>
+                <div class="type-option" data-category="proxies" onclick="selectType(this, 'BUNGEECORD')"><h4>BungeeCord</h4><small>Proxy Clásico</small></div>
+                <div class="type-option" data-category="proxies" onclick="selectType(this, 'WATERFALL')"><h4>Waterfall</h4><small>Proxy Fork</small></div>
             </div>
             
             <div id="fabricLoaderField" style="display:none;">
@@ -363,27 +392,42 @@
                 <select id="serverLoaderVersion" style="width: 100%;"></select>
             </div>
 
-            <label style="display:block; margin-top:10px; color:var(--text-muted);">Versión del Juego</label>
-            <input type="text" id="serverVersion" list="commonVersions" placeholder="Escribe la versión (ej: 1.20.1) o selecciona" value="LATEST" style="width: 100%; box-sizing: border-box;">
-            <datalist id="commonVersions">
-                <option value="LATEST">Última Versión Estable</option>
-                <option value="1.21.1">1.21.1 (Tricky Trials)</option>
-                <option value="1.21">1.21</option>
-                <option value="1.20.6">1.20.6 (Armored Paws)</option>
-                <option value="1.20.4">1.20.4 (Trails & Tales)</option>
-                <option value="1.20.1">1.20.1 (Popular)</option>
-                <option value="1.19.4">1.19.4 (The Wild Update)</option>
-                <option value="1.19.2">1.19.2</option>
-                <option value="1.18.2">1.18.2 (Caves & Cliffs II)</option>
-                <option value="1.17.1">1.17.1 (Caves & Cliffs I)</option>
-                <option value="1.16.5">1.16.5 (Nether Update - Mods)</option>
-                <option value="1.15.2">1.15.2 (Buzzy Bees)</option>
-                <option value="1.14.4">1.14.4 (Village & Pillage)</option>
-                <option value="1.13.2">1.13.2 (Update Aquatic)</option>
-                <option value="1.12.2">1.12.2 (Classic Mods)</option>
-                <option value="1.8.9">1.8.9 (PvP Legacy)</option>
-                <option value="1.7.10">1.7.10 (Legendary Mods)</option>
-            </datalist>
+            <div id="curseforgeFields" style="display: none; margin-top: 15px; display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+                <div>
+                    <label style="display:block; margin-bottom:5px; color:var(--text-muted);">Modpack Slug o Project ID</label>
+                    <input type="text" id="curseforgeSlug" placeholder="Ej: all-the-mods-9 o 715572">
+                    <small style="color:var(--text-muted); font-size:0.8em;">Lo encuentras en la URL del modpack.</small>
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:5px; color:var(--text-muted);">File ID <small>(Opcional)</small></label>
+                    <input type="text" id="curseforgeFileId" placeholder="Ej: 5217971">
+                    <small style="color:var(--text-muted); font-size:0.8em;">Para versión específica.</small>
+                </div>
+            </div>
+
+            <div id="versionField" style="margin-top: 15px;">
+                <label style="display:block; margin-bottom:5px; color:var(--text-muted);">Versión del Juego</label>
+                <input type="text" id="serverVersion" list="commonVersions" placeholder="Escribe la versión (ej: 1.20.1) o selecciona" value="LATEST" style="width: 100%; box-sizing: border-box;">
+                <datalist id="commonVersions">
+                    <option value="LATEST">Última Versión Estable</option>
+                    <option value="1.21.1">1.21.1 (Tricky Trials)</option>
+                    <option value="1.21">1.21</option>
+                    <option value="1.20.6">1.20.6 (Armored Paws)</option>
+                    <option value="1.20.4">1.20.4 (Trails & Tales)</option>
+                    <option value="1.20.1">1.20.1 (Popular)</option>
+                    <option value="1.19.4">1.19.4 (The Wild Update)</option>
+                    <option value="1.19.2">1.19.2</option>
+                    <option value="1.18.2">1.18.2 (Caves & Cliffs II)</option>
+                    <option value="1.17.1">1.17.1 (Caves & Cliffs I)</option>
+                    <option value="1.16.5">1.16.5 (Nether Update - Mods)</option>
+                    <option value="1.15.2">1.15.2 (Buzzy Bees)</option>
+                    <option value="1.14.4">1.14.4 (Village & Pillage)</option>
+                    <option value="1.13.2">1.13.2 (Update Aquatic)</option>
+                    <option value="1.12.2">1.12.2 (Classic Mods)</option>
+                    <option value="1.8.9">1.8.9 (PvP Legacy)</option>
+                    <option value="1.7.10">1.7.10 (Legendary Mods)</option>
+                </datalist>
+            </div>
             
             <details style="margin-top: 15px; margin-bottom: 20px; color: var(--text-muted); cursor: pointer;">
                 <summary>Configuración Avanzada de Puertos</summary>
@@ -459,6 +503,10 @@
             <button onclick="showUpdateModal()" class="type-option" style="height: auto; padding: 20px;">
                 <span style="font-size: 2em;">🚀</span>
                 <span style="margin-top: 10px; font-weight: 600;">Actualizar</span>
+            </button>
+            <button onclick="showCatalogView()" class="type-option" style="height: auto; padding: 20px;">
+                <span style="font-size: 2em;">📚</span>
+                <span style="margin-top: 10px; font-weight: 600;">Catálogo</span>
             </button>
         </div>
     </div>
@@ -706,6 +754,26 @@
         </div>
     </div>
 
+    <!-- VISTA: CATÁLOGO DE PLUGINS/MODS -->
+    <div id="catalogView" style="display:none;" class="view-animate">
+        <div class="view-header">
+            <h2 style="margin:0;">Catálogo de Contenido</h2>
+            <button onclick="showServerView('manageView')" class="secondary" style="width: auto;">&larr; Volver</button>
+        </div>
+        <div class="panel">
+            <div id="catalogTabs" style="display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+                <!-- Tabs will be generated here -->
+            </div>
+            <div style="display:flex; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="catalogSearchInput" placeholder="Buscar por nombre..." style="flex-grow: 1;" onkeydown="if(event.key==='Enter') searchCatalog()">
+                <button onclick="searchCatalog()" style="width: auto;">Buscar</button>
+            </div>
+            <div id="catalogResults" style="min-height: 400px; max-height: 60vh; overflow-y: auto; background: var(--input-bg); border-radius: 8px; padding: 10px; border: 1px solid var(--border-color); display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+                <p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; align-self: center;">Busca un plugin o mod para empezar.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- VISTA: SEGURIDAD PANEL -->
     <div id="securityView" style="display:none;" class="view-animate">
         <div class="panel">
@@ -780,9 +848,10 @@
         let playerInterval = null;
         let currentServerName = '';
         let lastNotificationTime = 0;
+        let currentServerType = 'UNKNOWN';
         let detailsInterval = null;
         let currentPlayerDetails = null;
-        const serverViews = ['manageView', 'consoleView', 'playersView', 'fileManagerView', 'configView', 'statsView', 'securityView', 'pluginsView'];
+        const serverViews = ['manageView', 'consoleView', 'playersView', 'fileManagerView', 'configView', 'statsView', 'securityView', 'pluginsView', 'catalogView'];
         let editor; // Ace Editor instance
 
         // New function for visual selector
@@ -792,6 +861,26 @@
             document.querySelectorAll('.type-option').forEach(el => el.classList.remove('selected'));
             element.classList.add('selected');
             checkServerType();
+        }
+
+        function showTypesForCategory(categoryElement, category) {
+            // 1. Update category button visuals
+            document.querySelectorAll('.category-option').forEach(el => el.classList.remove('selected'));
+            categoryElement.classList.add('selected');
+
+            // 2. Show/hide server type options
+            const typeOptions = document.querySelectorAll('.type-option');
+            let firstVisibleType = null;
+
+            typeOptions.forEach(opt => {
+                if (opt.dataset.category === category) {
+                    opt.style.display = 'flex';
+                    if (!firstVisibleType) firstVisibleType = opt; // Store the first one we find
+                } else {
+                    opt.style.display = 'none';
+                }
+            });
+            if (firstVisibleType) firstVisibleType.click();
         }
 
         function updateRamLabel(val) {
@@ -820,11 +909,13 @@
             const type = document.getElementById('serverType').value;
             const version = document.getElementById('serverVersion').value;
             const loader = document.getElementById('serverLoaderVersion').value;
+            const curseforgeSlug = document.getElementById('curseforgeSlug').value;
+            const curseforgeFileId = document.getElementById('curseforgeFileId').value;
 
             const res = await fetch('/create-server', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ serverName: name, port, bedrockPort, ramLimit: ram, serverType: type, serverVersion: version, loaderVersion: loader })
+                body: JSON.stringify({ serverName: name, port, bedrockPort, ramLimit: ram, serverType: type, serverVersion: version, loaderVersion: loader, curseforgeSlug, curseforgeFileId })
             });
             const data = await res.json();
             showToast(data.message || data.error, res.ok ? 'success' : 'error');
@@ -1111,6 +1202,9 @@
             // Auto-detectar puertos libres
             detectPorts();
             fetchSystemInfo();
+
+            // Set initial state to the first category (Plugins)
+            document.querySelector('.category-option').click();
         }
 
         function showSecurityView() {
@@ -1128,6 +1222,10 @@
             hideAllViews();
             document.getElementById('pluginsView').style.display = 'block';
             loadPluginsList();
+        }
+
+        function showCatalogView() {
+            // Implemented further down
         }
 
         async function loadPluginsList() {
@@ -1267,13 +1365,22 @@
             });
         }
 
-        function selectServer(id, name, port, bedrockPort) {
+        async function selectServer(id, name, port, bedrockPort) {
             document.getElementById('containerId').value = id;
             document.getElementById('controlTitle').innerText = `Gestionando: ${name}`;
             const bPort = bedrockPort || '19132';
             document.getElementById('portDisplay').innerHTML = `🔌 Java (TCP): <strong>${port}</strong> | 📱 Bedrock (UDP): <strong>${bPort}</strong>`;
             document.getElementById('statusIndicator').innerText = "Conectando...";
             
+            // --- NEW: Fetch server type ---
+            try {
+                const res = await fetch(`/server-details/${id}`);
+                const details = await res.json();
+                currentServerType = details.type;
+            } catch (e) {
+                currentServerType = 'UNKNOWN';
+            }
+
             currentServerName = name;
             currentServerPort = port;
             
@@ -1776,6 +1883,101 @@
             xhr.send(formData);
         }
 
+        // --- NUEVO: Lógica del Catálogo ---
+        function showCatalogView() {
+            showServerView('catalogView');
+            const tabsContainer = document.getElementById('catalogTabs');
+            tabsContainer.innerHTML = ''; // Clear previous tabs
+            document.getElementById('catalogResults').innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; align-self: center;">Selecciona una categoría y busca algo.</p>';
+            document.getElementById('catalogSearchInput').value = '';
+
+            const serverType = currentServerType.toUpperCase();
+            let availableTabs = [];
+
+            // Logic to decide which catalogs are available
+            const pluginTypes = ['PAPER', 'SPIGOT', 'PURPUR', 'BUKKIT', 'SPONGEVANILLA'];
+            const modTypes = ['FORGE', 'FABRIC', 'NEOFORGE', 'QUILT'];
+            const hybridTypes = ['MOHIST', 'MAGMA', 'CATSERVER', 'ARCLIGHT'];
+
+            if (pluginTypes.includes(serverType) || hybridTypes.includes(serverType)) {
+                availableTabs.push({ name: 'Plugins', type: 'plugins' });
+            }
+            if (modTypes.includes(serverType) || hybridTypes.includes(serverType)) {
+                // availableTabs.push({ name: 'Mods', type: 'mods' }); // Deshabilitado por ahora
+            }
+
+            if (availableTabs.length === 0) {
+                tabsContainer.innerHTML = '<p style="color: var(--warning-color);">Este tipo de servidor no soporta catálogos de contenido.</p>';
+                return;
+            }
+
+            availableTabs.forEach((tab, index) => {
+                const button = document.createElement('button');
+                button.innerText = tab.name;
+                button.className = 'category-option'; // Reuse style
+                button.dataset.type = tab.type;
+                button.onclick = () => {
+                    document.querySelectorAll('#catalogTabs button').forEach(btn => btn.classList.remove('selected'));
+                    button.classList.add('selected');
+                    document.getElementById('catalogSearchInput').focus();
+                };
+                if (index === 0) button.classList.add('selected'); // Select first tab by default
+                tabsContainer.appendChild(button);
+            });
+        }
+
+        async function searchCatalog() {
+            const selectedTab = document.querySelector('#catalogTabs button.selected');
+            if (!selectedTab) return showToast('Selecciona una categoría primero.', 'warning');
+
+            const type = selectedTab.dataset.type;
+            const query = document.getElementById('catalogSearchInput').value;
+            if (!query) return showToast('Escribe algo para buscar.', 'warning');
+
+            const resultsDiv = document.getElementById('catalogResults');
+            resultsDiv.innerHTML = '<p style="text-align: center; grid-column: 1 / -1; align-self: center;">Buscando...</p>';
+
+            try {
+                const res = await fetch(`/catalog/search?type=${type}&query=${encodeURIComponent(query)}`);
+                const results = await res.json();
+                
+                if (results.error) throw new Error(results.error);
+                if (results.length === 0) {
+                    resultsDiv.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1 / -1; align-self: center;">No se encontraron resultados.</p>';
+                    return;
+                }
+
+                resultsDiv.innerHTML = ''; // Clear
+                results.forEach(plugin => {
+                    const card = document.createElement('div');
+                    card.style.cssText = 'background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column;';
+                    const iconUrl = plugin.icon.url ? `https://api.spiget.org/v2/${plugin.icon.url}` : 'https://via.placeholder.com/96/18181b/a1a1aa?text=P';
+                    card.innerHTML = `
+                        <div style="display: flex; gap: 10px; align-items: flex-start; flex-grow: 1;">
+                            <img src="${iconUrl}" style="width: 48px; height: 48px; border-radius: 8px; background: #000;">
+                            <div>
+                                <h4 style="margin: 0 0 5px 0; font-size: 1em;">${plugin.name}</h4>
+                                <p style="font-size: 0.8em; color: var(--text-muted); margin: 0; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${plugin.tag}</p>
+                            </div>
+                        </div>
+                        <button onclick="installPlugin(${plugin.id}, '${plugin.name}')" style="margin-top: 15px; width: 100%;">Instalar</button>
+                    `;
+                    resultsDiv.appendChild(card);
+                });
+
+            } catch (e) {
+                resultsDiv.innerHTML = `<p style="color: var(--danger-color); text-align: center; grid-column: 1 / -1; align-self: center;">${e.message}</p>`;
+            }
+        }
+
+        async function installPlugin(pluginId, pluginName) {
+            const downloadUrl = `https://api.spiget.org/v2/resources/${pluginId}/download`;
+            showToast(`Iniciando instalación de ${pluginName}...`, 'info');
+            const res = await fetch('/catalog/install', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ serverName: currentServerName, downloadUrl, destination: 'plugins', fileNameHint: pluginName }) });
+            const data = await res.json();
+            showToast(data.message || data.error, res.ok ? 'success' : 'error');
+        }
+
         // --- Sistema de Notificaciones Toast Mejorado ---
         function showToast(message, type = 'info') { // types: info, success, error
             const container = document.getElementById('toast-container');
@@ -1808,11 +2010,15 @@
         async function checkServerType() {
             const type = document.getElementById('serverType').value; // Now hidden input
             const loaderField = document.getElementById('fabricLoaderField');
-            const versionInput = document.getElementById('serverVersion');
+            const versionField = document.getElementById('versionField'); // El div que contiene el input
+            const versionInput = document.getElementById('serverVersion'); // El input de texto
             const datalist = document.getElementById('commonVersions');
+            const curseforgeFields = document.getElementById('curseforgeFields');
             
             if (type === 'FABRIC' || type === 'QUILT') {
                 loaderField.style.display = 'block';
+                versionField.style.display = 'block';
+                curseforgeFields.style.display = 'none';
                 const isQuilt = type === 'QUILT';
                 const label = isQuilt ? 'Quilt' : 'Fabric';
                 document.querySelector('#fabricLoaderField label').innerText = `Versión de ${label} Loader:`;
@@ -1853,8 +2059,14 @@
                     });
                 } catch(e) { console.error("Error cargando loaders:", e); }
 
+            } else if (type === 'CURSEFORGE') {
+                loaderField.style.display = 'none';
+                versionField.style.display = 'none';
+                curseforgeFields.style.display = 'grid';
             } else {
                 loaderField.style.display = 'none';
+                curseforgeFields.style.display = 'none';
+                versionField.style.display = 'block';
                 // Restaurar lista por defecto
                 datalist.innerHTML = `
                     <option value="LATEST">Última Versión Estable</option>

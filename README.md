@@ -27,11 +27,26 @@ Gestor de servidores de Minecraft ligero, potente y auto-hospedado. Diseñado pa
     *   Soporte HTTPS (SSL autofirmado automático).
 *   **🧩 Sistema de Plugins:** Extensible mediante scripts JS en backend y frontend.
 
-## 📋 Requisitos
+## 💻 Compatibilidad
 
-1.  **Node.js** (v16+): [Descargar](https://nodejs.org/).
+| Característica | Linux 🐧 | macOS 🍎 | Windows 🪟 |
+| :--- | :---: | :---: | :---: |
+| **Gestión de Servidores (Docker)** | ✅ | ✅ | ✅ |
+| **Autenticación Sistema (PAM)** | ✅ | ❌ | ❌ |
+| **Autenticación Archivo JSON** | ✅ | ✅ | ✅ |
+| **HTTPS (SSL Automático)** | ✅ | ✅ | ⚠️ (Requiere OpenSSL) |
+
+## � Requisitos
+
+1.  **Node.js** (v18+): [Descargar](https://nodejs.org/). Se requiere v18 o superior por el uso de la API `fetch` nativa.
 2.  **Docker Desktop** o **Docker Engine**: [Descargar](https://www.docker.com/products/docker-desktop/).
     > **Importante:** Docker debe estar ejecutándose antes de iniciar el panel.
+
+3.  **(Opcional) OpenSSL**: Necesario para la generación automática de certificados HTTPS. Viene preinstalado en la mayoría de sistemas Linux y macOS. Si no está presente, el panel se iniciará en modo HTTP.
+
+4.  **(Opcional, solo Linux) Herramientas de Compilación**: Para que la autenticación con usuarios del sistema funcione, necesitarás las herramientas para compilar módulos nativos de Node.js.
+    *   En Debian/Ubuntu: `sudo apt install build-essential libpam-dev`
+    *   En Arch Linux: `sudo pacman -S base-devel pam`
 
 ## 🛠️ Instalación
 
