@@ -1,0 +1,16 @@
+[Unit]
+Description=Panel de Control Minecraft
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+# IMPORTANTE: Cambia 'tu_usuario' por tu nombre de usuario real de Linux
+User=tu_usuario
+# IMPORTANTE: Cambia esta ruta por la ruta real donde está tu carpeta en la laptop
+WorkingDirectory=/home/tu_usuario/minecraft-server
+ExecStart=/usr/bin/node server-manager.js
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

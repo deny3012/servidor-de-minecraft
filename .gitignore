@@ -1,0 +1,12 @@
+node_modules/
+servers/
+backups/
+plugins/
+web-plugins/
+panel.log
+*.key
+*.cert
+panel-whitelist.json
+.DS_Store
+Thumbs.db
+.vscode/
