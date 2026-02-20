@@ -560,7 +560,7 @@
                     <button onclick="sendWhitelistCmd('off')" style="background: var(--danger-color); flex: 1;">Desactivar ❌</button>
                 </div>
                 <div style="display:flex; gap: 10px; margin-bottom: 15px;">
-                    <input type="text" id="whitelistInput" placeholder="Nombre (ej: Steve)" style="flex-grow: 1;">
+                    <input type="text" id="whitelistInput" placeholder="Nombre (ej: Steve)" style="flex-grow: 1;" onkeydown="if(event.key==='Enter') addWhitelistPlayer()">
                     <button onclick="addWhitelistPlayer()" style="width: auto; background: var(--primary-color);">Añadir</button>
                 </div>
                 <ul id="whitelistDisplay" style="list-style: none; padding: 0; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 4px; min-height: 200px; max-height: 400px; overflow-y: auto;"></ul>
@@ -620,7 +620,7 @@
             </select>
 
             <label style="display:block; margin-top:10px;">Versión:</label>
-            <input type="text" id="updateVersion" placeholder="Ej: 1.20.4 o LATEST" value="LATEST">
+            <input type="text" id="updateVersion" placeholder="Ej: 1.20.4 o LATEST" value="LATEST" onkeydown="if(event.key==='Enter') confirmUpdate()">
 
             <div style="display:flex; gap:10px; margin-top:20px;">
                 <button onclick="confirmUpdate()" style="background: var(--warning-color); color: #000;">Confirmar Actualización</button>
@@ -789,7 +789,7 @@
             </div>
 
             <div style="display:flex; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="newAllowedIp" placeholder="Ej: 192.168.1.50" style="flex-grow: 1;">
+                <input type="text" id="newAllowedIp" placeholder="Ej: 192.168.1.50" style="flex-grow: 1;" onkeydown="if(event.key==='Enter') addAllowedIp()">
                 <button onclick="addAllowedIp()" style="width: auto; background: var(--success-color);">Añadir IP</button>
             </div>
 

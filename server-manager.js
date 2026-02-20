@@ -157,7 +157,7 @@ app.use((req, res, next) => {
 // Configuración de subida de archivos (Multer)
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const serverRoot = path.join(__dirname, 'servers', req.params.serverName);
+        const serverRoot = path.join(__dirname, 'servers', path.basename(req.params.serverName));
         let uploadPath = serverRoot;
         
         // Soporte para subir a subcarpetas
@@ -181,8 +181,9 @@ const upload = multer({ storage: storage });
  * Crea un nuevo servidor
  */
 app.post('/create-server', async (req, res) => {
-    const { serverName, ramLimit, port, bedrockPort, serverType, serverVersion, loaderVersion, curseforgeSlug, curseforgeFileId } = req.body;
+    let { serverName, ramLimit, port, bedrockPort, serverType, serverVersion, loaderVersion, curseforgeSlug, curseforgeFileId } = req.body;
     
+    serverName = path.basename(serverName); // Sanitizar nombre para evitar path traversal
     logActivity(`Creando servidor: ${serverName} (${serverType} ${serverVersion})`);
 
     // Ruta absoluta en Linux
@@ -482,7 +483,7 @@ app.get('/download-logs/:id', async (req, res) => {
 
 // Listar archivos del servidor
 app.get('/files/:serverName', (req, res) => {
-    const serverRoot = path.join(__dirname, 'servers', req.params.serverName);
+    const serverRoot = path.join(__dirname, 'servers', path.basename(req.params.serverName));
     const subPath = req.query.path ? req.query.path.replace(/\.\./g, '') : '';
     const targetPath = path.join(serverRoot, subPath);
 
@@ -508,7 +509,7 @@ app.post('/upload/:serverName', upload.array('files'), (req, res) => {
 // Eliminar archivos o carpetas
 app.delete('/delete-file/:serverName', (req, res) => {
     const { fileName } = req.body;
-    const serverPath = path.join(__dirname, 'servers', req.params.serverName);
+    const serverPath = path.join(__dirname, 'servers', path.basename(req.params.serverName));
     const filePath = path.join(serverPath, fileName);
 
     // Seguridad básica: evitar borrar archivos fuera de la carpeta del servidor
@@ -528,7 +529,7 @@ app.delete('/delete-file/:serverName', (req, res) => {
 // Descargar archivo individual
 app.get('/download-file/:serverName', (req, res) => {
     const { fileName } = req.query;
-    const serverPath = path.join(__dirname, 'servers', req.params.serverName);
+    const serverPath = path.join(__dirname, 'servers', path.basename(req.params.serverName));
     const filePath = path.join(serverPath, fileName);
 
     if (!filePath.startsWith(serverPath)) return res.status(403).send('Acceso denegado');
@@ -540,7 +541,7 @@ app.get('/download-file/:serverName', (req, res) => {
 // Leer contenido de archivo
 app.get('/read-file/:serverName', (req, res) => {
     const { fileName } = req.query;
-    const serverPath = path.join(__dirname, 'servers', req.params.serverName);
+    const serverPath = path.join(__dirname, 'servers', path.basename(req.params.serverName));
     const filePath = path.join(serverPath, fileName);
 
     if (!filePath.startsWith(serverPath)) return res.status(403).json({ error: 'Acceso denegado' });
@@ -557,7 +558,7 @@ app.get('/read-file/:serverName', (req, res) => {
 // Guardar contenido de archivo
 app.post('/save-file/:serverName', (req, res) => {
     const { fileName, content } = req.body;
-    const serverPath = path.join(__dirname, 'servers', req.params.serverName);
+    const serverPath = path.join(__dirname, 'servers', path.basename(req.params.serverName));
     const filePath = path.join(serverPath, fileName);
 
     if (!filePath.startsWith(serverPath)) return res.status(403).json({ error: 'Acceso denegado' });
@@ -707,7 +708,7 @@ app.post('/catalog/install', async (req, res) => {
     if (!serverName || !downloadUrl || !destination) return res.status(400).json({ error: 'Faltan parámetros.' });
     if (destination !== 'plugins' && destination !== 'mods') return res.status(400).json({ error: 'Destino no válido.' });
 
-    const serverPath = path.join(__dirname, 'servers', serverName);
+    const serverPath = path.join(__dirname, 'servers', path.basename(serverName));
     const destPath = path.join(serverPath, destination);
     if (!fs.existsSync(destPath)) fs.mkdirSync(destPath, { recursive: true });
 
@@ -806,7 +807,7 @@ app.get('/server-status/:port', async (req, res) => {
 // Obtener detalles del jugador (Inventario, EnderChest, Stats)
 app.get('/player-details/:serverName/:playerName', async (req, res) => {
     const { serverName, playerName } = req.params;
-    const serverPath = path.join(__dirname, 'servers', serverName);
+    const serverPath = path.join(__dirname, 'servers', path.basename(serverName));
     
     try {
         // 1. Obtener UUID desde usercache.json
@@ -836,20 +837,24 @@ app.get('/player-details/:serverName/:playerName', async (req, res) => {
         
         if (fs.existsSync(playerDataPath)) {
             const buffer = fs.readFileSync(playerDataPath);
-            const { parsed } = await nbt.parse(buffer);
-            const simplified = nbt.simplify(parsed);
-            inventory = simplified.Inventory || [];
-            enderChest = simplified.EnderItems || [];
-            
-            // Extraer datos vitales
-            vitals = {
-                health: simplified.Health !== undefined ? simplified.Health : 20,
-                foodLevel: simplified.foodLevel !== undefined ? simplified.foodLevel : 20,
-                foodSaturation: simplified.foodSaturationLevel !== undefined ? simplified.foodSaturationLevel : 0,
-                xpLevel: simplified.XpLevel || 0,
-                xpProgress: simplified.XpP || 0,
-                xpTotal: simplified.XpTotal || 0
-            };
+            try {
+                const { parsed } = await nbt.parse(buffer);
+                const simplified = nbt.simplify(parsed);
+                inventory = simplified.Inventory || [];
+                enderChest = simplified.EnderItems || [];
+                
+                // Extraer datos vitales
+                vitals = {
+                    health: simplified.Health !== undefined ? simplified.Health : 20,
+                    foodLevel: simplified.foodLevel !== undefined ? simplified.foodLevel : 20,
+                    foodSaturation: simplified.foodSaturationLevel !== undefined ? simplified.foodSaturationLevel : 0,
+                    xpLevel: simplified.XpLevel || 0,
+                    xpProgress: simplified.XpP || 0,
+                    xpTotal: simplified.XpTotal || 0
+                };
+            } catch (e) {
+                console.error(`Error leyendo NBT para ${playerName}:`, e.message);
+            }
         }
 
         // 3. Leer Estadísticas (JSON)
@@ -903,7 +908,7 @@ app.post('/execute-command/:id', async (req, res) => {
 
 // Leer whitelist.json
 app.get('/whitelist/:serverName', (req, res) => {
-    const serverPath = path.join(__dirname, 'servers', req.params.serverName);
+    const serverPath = path.join(__dirname, 'servers', path.basename(req.params.serverName));
     const whitelistPath = path.join(serverPath, 'whitelist.json');
     
     if (fs.existsSync(whitelistPath)) {
@@ -916,7 +921,7 @@ app.get('/whitelist/:serverName', (req, res) => {
 
 // Obtener icono del servidor
 app.get('/server-icon/:serverName', (req, res) => {
-    const serverPath = path.join(__dirname, 'servers', req.params.serverName);
+    const serverPath = path.join(__dirname, 'servers', path.basename(req.params.serverName));
     const iconPath = path.join(serverPath, 'server-icon.png');
     if (fs.existsSync(iconPath)) {
         res.sendFile(iconPath);
@@ -1003,7 +1008,7 @@ app.post('/local-backup/:id', async (req, res) => {
 
 // Descargar Backup (.zip)
 app.get('/backup/:serverName', (req, res) => {
-    const serverPath = path.join(__dirname, 'servers', req.params.serverName);
+    const serverPath = path.join(__dirname, 'servers', path.basename(req.params.serverName));
     
     if (!fs.existsSync(serverPath)) return res.status(404).send('Servidor no encontrado');
 
@@ -1041,9 +1046,14 @@ io.on('connection', (socket) => {
 
             socket.on('send-command', (command) => {
                 container.attach({ stream: true, stdin: true, hijack: true }, (err, stream) => {
-                    if(!err) stream.write(command + "\n");
+                    if(!err) {
+                        stream.write(command + "\n");
+                        stream.end(); // Cerrar stream después de enviar
+                    }
                 });
             });
+
+            socket.on('disconnect', () => stream.destroy()); // Limpiar stream al desconectar
 
         } catch (error) {
             socket.emit('error', 'Error conectando a consola: ' + error.message);

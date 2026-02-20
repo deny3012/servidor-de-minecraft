@@ -1,10 +1,10 @@
 # 🎮 Panel de Control de Minecraft (Docker + Node.js)
 
 ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
-![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Status](https://img.shields.io/badge/status-activo-success.svg?style=for-the-badge)
 
-Gestor de servidores de Minecraft ligero, potente y auto-hospedado. Diseñado para correr en tu propia máquina usando Docker, ofreciendo una interfaz web moderna para gestionar múltiples servidores Java y Bedrock.
+Un gestor de servidores de Minecraft ligero, potente y auto-hospedado. Diseñado para correr en tu propia máquina (Linux, Windows o macOS) usando Docker, ofreciendo una interfaz web moderna para gestionar múltiples servidores.
 
 ## ✨ Características Principales
 
@@ -47,6 +47,7 @@ Gestor de servidores de Minecraft ligero, potente y auto-hospedado. Diseñado pa
 4.  **(Opcional, solo Linux) Herramientas de Compilación**: Para que la autenticación con usuarios del sistema funcione, necesitarás las herramientas para compilar módulos nativos de Node.js.
     *   En Debian/Ubuntu: `sudo apt install build-essential libpam-dev`
     *   En Arch Linux: `sudo pacman -S base-devel pam`
+    *   En Fedora/CentOS: `sudo dnf install pam-devel gcc-c++ make`
 
 ## 🛠️ Instalación
 
@@ -97,9 +98,9 @@ web-plugins/
 
 ## ❓ Solución de Problemas
 
-*   **Error de Docker:** Verifica que Docker Desktop esté abierto.
-*   **Advertencia de Seguridad:** Al usar certificados autofirmados, el navegador avisará que "La conexión no es privada". Debes dar clic en "Avanzado" > "Continuar a localhost".
-*   **Permisos en Linux:** Si tienes errores de escritura, asegúrate de que tu usuario tenga permisos sobre el socket de Docker (`sudo usermod -aG docker $USER`).
+*   **Error `Cannot connect to the Docker daemon`:** Asegúrate de que Docker Desktop (en Windows/macOS) o el servicio de Docker (en Linux) esté en ejecución antes de iniciar el panel.
+*   **Advertencia de Seguridad "La conexión no es privada":** Esto es normal. El panel genera un certificado autofirmado para seguridad. Simplemente haz clic en "Avanzado" y luego en "Continuar a localhost (no seguro)".
+*   **Permisos de Docker en Linux:** Si recibes un error de permisos al interactuar con Docker, es probable que tu usuario no esté en el grupo `docker`. Ejecuta `sudo usermod -aG docker $USER` y luego **cierra la sesión y vuelve a iniciarla** para que los cambios surtan efecto.
 
 ---
-Creado con ❤️ para facilitar la administración de servidores en casa.
+Creado con ❤️ para facilitar la administración de servidores.
